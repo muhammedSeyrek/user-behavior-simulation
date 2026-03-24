@@ -19,8 +19,8 @@ export default function AwarenessPage() {
   const correctCount = rounds.filter((r) => {
     const isPhishing = r.content.type === "phishing";
     return (
-      (isPhishing && (r.action === "reported_phishing" || r.action === "ignored")) ||
-      (!isPhishing && r.action === "clicked_link")
+      (isPhishing && (r.action === "reported_phishing" || r.action === "ignored" || r.action === "closed_tab")) ||
+      (!isPhishing && (r.action === "clicked_link" || r.action === "submitted_form"))
     );
   }).length;
   const score = Math.round((correctCount / rounds.length) * 100);
@@ -40,7 +40,7 @@ export default function AwarenessPage() {
               marginBottom: 8,
             }}
           >
-            Simülasyon Tamamlandı — {rounds.length} E-Posta
+            Simülasyon Tamamlandı — {rounds.length} İçerik
           </div>
           <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>
             Farkındalık Raporu
@@ -98,14 +98,14 @@ export default function AwarenessPage() {
           {rounds.map((r) => {
             const isPhishing = r.content.type === "phishing";
             const correct =
-              (isPhishing && (r.action === "reported_phishing" || r.action === "ignored")) ||
-              (!isPhishing && r.action === "clicked_link");
+              (isPhishing && (r.action === "reported_phishing" || r.action === "ignored" || r.action === "closed_tab")) ||
+              (!isPhishing && (r.action === "clicked_link" || r.action === "submitted_form"));
             const actionLabel =
-              r.action === "clicked_link"
-                ? "Bağlantıya tıkladı"
-                : r.action === "reported_phishing"
-                ? "Phishing raporladı"
-                : "Görmezden geldi";
+              r.action === "clicked_link" ? "Bağlantıya tıkladı"
+              : r.action === "submitted_form" ? "Formu gönderdi"
+              : r.action === "reported_phishing" ? "Phishing raporladı"
+              : r.action === "closed_tab" ? "Sekmeyi kapattı"
+              : "Görmezden geldi";
 
             return (
               <div
@@ -146,6 +146,12 @@ export default function AwarenessPage() {
                     >
                       {isPhishing ? "Phishing" : "Meşru"}
                     </span>
+                    <span
+                      className="tag"
+                      style={{ fontSize: 10, marginLeft: 4 }}
+                    >
+                      {r.content.format === "web" ? "Web" : "E-posta"}
+                    </span>
                   </div>
                   <span
                     style={{
@@ -159,12 +165,25 @@ export default function AwarenessPage() {
                   </span>
                 </div>
 
-                <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "var(--gray-90)" }}>
-                  {r.content.subject}
-                </p>
-                <p style={{ fontSize: 12, color: "var(--gray-60)", marginBottom: 8 }}>
-                  {r.content.sender_name} &lt;{r.content.sender_email}&gt;
-                </p>
+                {r.content.format === "web" ? (
+                  <>
+                    <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "var(--gray-90)" }}>
+                      {r.content.brand}
+                    </p>
+                    <p style={{ fontSize: 12, color: "var(--gray-60)", fontFamily: "var(--font-mono)", marginBottom: 8 }}>
+                      {r.content.fake_url}
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <p style={{ fontSize: 13, fontWeight: 600, marginBottom: 4, color: "var(--gray-90)" }}>
+                      {r.content.subject}
+                    </p>
+                    <p style={{ fontSize: 12, color: "var(--gray-60)", marginBottom: 8 }}>
+                      {r.content.sender_name} &lt;{r.content.sender_email}&gt;
+                    </p>
+                  </>
+                )}
 
                 <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 12, color: "var(--gray-70)" }}>
                   <span>Karar: <strong>{actionLabel}</strong></span>

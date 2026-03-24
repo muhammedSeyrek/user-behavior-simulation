@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { interactionApi, RoundResult, sessionApi, SimulationContent } from "../api/client";
 
-type Action = "clicked_link" | "reported_phishing" | "ignored";
+type Action = "clicked_link" | "reported_phishing" | "ignored" | "submitted_form" | "closed_tab";
 
 const MOTIVATION_OPTIONS = [
   "Gönderenin e-posta adresi şüpheli göründü",
@@ -254,95 +254,140 @@ export default function SimulationPage() {
         />
       )}
 
-      <div className="container" style={{ maxWidth: 680 }}>
+      <div className="container" style={{ maxWidth: content.format === "web" ? 780 : 680 }}>
         {/* İlerleme bandı */}
         <div className="notification notif-warning" style={{ marginBottom: 24, alignItems: "center" }}>
           <span className="notification-label">Simülasyon</span>
           <span style={{ flex: 1 }}>
-            E-posta {round + 1} / {TOTAL} — Gerçek değildir, araştırma amaçlıdır.
+            {content.format === "web" ? "Web Sayfası" : "E-posta"} {round + 1} / {TOTAL} — Gerçek değildir, araştırma amaçlıdır.
           </span>
-          <span
-            style={{
-              fontFamily: "var(--font-mono)",
-              fontSize: 12,
-              color: "var(--gray-60)",
-              whiteSpace: "nowrap",
-            }}
-          >
+          <span style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--gray-60)", whiteSpace: "nowrap" }}>
             {"█".repeat(round + 1)}{"░".repeat(TOTAL - round - 1)}
           </span>
         </div>
 
-        {/* E-posta kutusu */}
-        <div className="card" style={{ marginBottom: 16 }}>
-          <div style={{ borderBottom: "1px solid var(--gray-20)", paddingBottom: 16, marginBottom: 20 }}>
-            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
-              <div
-                style={{
-                  width: 36, height: 36,
-                  background: "var(--gray-90)", color: "var(--gray-10)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                  fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 14, flexShrink: 0,
-                }}
+        {content.format === "web" ? (
+          /* ── Web Sayfası Görünümü ─────────────────────────────────────── */
+          <div className="card" style={{ marginBottom: 16, padding: 0, overflow: "hidden" }}>
+            {/* Sahte tarayıcı çubuğu */}
+            <div style={{ background: "var(--gray-15, #e8e8e8)", padding: "10px 14px", display: "flex", alignItems: "center", gap: 10, borderBottom: "1px solid var(--gray-20)" }}>
+              <div style={{ display: "flex", gap: 6 }}>
+                {["#ff5f56","#ffbd2e","#27c93f"].map((c) => (
+                  <div key={c} style={{ width: 12, height: 12, borderRadius: "50%", background: c }} />
+                ))}
+              </div>
+              <div style={{ flex: 1, background: "white", border: "1px solid var(--gray-30)", borderRadius: 4, padding: "4px 10px", display: "flex", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, color: "var(--gray-50)" }}>🔒</span>
+                <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gray-70)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+                  {content.fake_url}
+                </span>
+              </div>
+            </div>
+
+            {/* Sahte sayfa içeriği */}
+            <div style={{ padding: "32px 40px" }}>
+              {/* Marka başlığı */}
+              <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 28 }}>
+                <span style={{ fontSize: 28 }}>{content.favicon}</span>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: 16, color: "var(--gray-100)" }}>{content.brand}</div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 10, color: "var(--gray-50)" }}>{content.page_title}</div>
+                </div>
+              </div>
+
+              <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8, color: "var(--gray-100)" }}>{content.headline}</h2>
+              <p style={{ fontSize: 13, color: "var(--gray-60)", marginBottom: 24, lineHeight: 1.5 }}>{content.subtext}</p>
+
+              {/* Form alanları */}
+              <div style={{ display: "flex", flexDirection: "column", gap: 14, marginBottom: 20 }}>
+                {content.fields?.map((f, i) => (
+                  <div key={i}>
+                    <label style={{ display: "block", fontSize: 12, fontWeight: 600, color: "var(--gray-70)", marginBottom: 4 }}>{f.label}</label>
+                    <input
+                      type={f.type}
+                      placeholder={f.placeholder}
+                      disabled={!!action}
+                      style={{ width: "100%", padding: "10px 12px", border: "1px solid var(--gray-20)", fontSize: 13, color: "var(--gray-80)", background: action ? "var(--gray-10)" : "white", boxSizing: "border-box" }}
+                    />
+                  </div>
+                ))}
+              </div>
+
+              <button
+                className="btn-primary"
+                style={{ width: "100%", justifyContent: "center", padding: "12px", marginBottom: 10 }}
+                disabled={!!action}
+                onClick={() => setAction("submitted_form")}
               >
-                {content.sender_name[0].toUpperCase()}
-              </div>
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 4, marginBottom: 2 }}>
-                  <span style={{ fontWeight: 600, fontSize: 14 }}>{content.sender_name}</span>
-                  <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gray-50)" }}>az önce</span>
+                {content.submit_text}
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* ── E-posta Görünümü ─────────────────────────────────────────── */
+          <div className="card" style={{ marginBottom: 16 }}>
+            <div style={{ borderBottom: "1px solid var(--gray-20)", paddingBottom: 16, marginBottom: 20 }}>
+              <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
+                <div style={{ width: 36, height: 36, background: "var(--gray-90)", color: "var(--gray-10)", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "var(--font-mono)", fontWeight: 600, fontSize: 14, flexShrink: 0 }}>
+                  {content.sender_name?.[0]?.toUpperCase() ?? "?"}
                 </div>
-                <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--gray-70)" }}>
-                  {content.sender_email}
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", flexWrap: "wrap", gap: 4, marginBottom: 2 }}>
+                    <span style={{ fontWeight: 600, fontSize: 14 }}>{content.sender_name}</span>
+                    <span style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gray-50)" }}>az önce</span>
+                  </div>
+                  <div style={{ fontFamily: "var(--font-mono)", fontSize: 12, color: "var(--gray-70)" }}>{content.sender_email}</div>
                 </div>
               </div>
+              <div style={{ fontWeight: 600, fontSize: 15, color: "var(--gray-100)", marginTop: 14 }}>{content.subject}</div>
             </div>
-            <div style={{ fontWeight: 600, fontSize: 15, color: "var(--gray-100)", marginTop: 14 }}>
-              {content.subject}
-            </div>
-          </div>
-
-          <div style={{ fontSize: 14, color: "var(--gray-70)", lineHeight: 1.75, whiteSpace: "pre-line", marginBottom: 24 }}>
-            {content.body}
-          </div>
-
-          <div style={{ background: "var(--gray-10)", border: "1px solid var(--gray-20)", padding: 16 }}>
-            <button
-              className="btn-primary"
-              style={{ width: "100%", justifyContent: "center", padding: "12px 16px" }}
-              disabled={!!action}
-              onClick={() => setAction("clicked_link")}
-            >
-              {content.link_text}
-            </button>
-            <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gray-50)", marginTop: 8, textAlign: "center" }}>
-              {content.link_url === "#simulation-click" ? "https://..." : content.link_url}
+            <div style={{ fontSize: 14, color: "var(--gray-70)", lineHeight: 1.75, whiteSpace: "pre-line", marginBottom: 24 }}>{content.body}</div>
+            <div style={{ background: "var(--gray-10)", border: "1px solid var(--gray-20)", padding: 16 }}>
+              <button className="btn-primary" style={{ width: "100%", justifyContent: "center", padding: "12px 16px" }} disabled={!!action} onClick={() => setAction("clicked_link")}>
+                {content.link_text}
+              </button>
+              <div style={{ fontFamily: "var(--font-mono)", fontSize: 11, color: "var(--gray-50)", marginTop: 8, textAlign: "center" }}>
+                {content.link_url === "#simulation-click" ? "https://..." : content.link_url}
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Karar paneli */}
         <div className="card">
           <p style={{ fontSize: 13, color: "var(--gray-70)", marginBottom: 14, fontWeight: 500 }}>
-            Bu e-postayı nasıl değerlendiriyorsunuz?
+            {content.format === "web" ? "Bu sayfayı nasıl değerlendiriyorsunuz?" : "Bu e-postayı nasıl değerlendiriyorsunuz?"}
           </p>
           <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            <button
-              className="btn-danger"
-              style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
-              disabled={!!action}
-              onClick={() => setAction("reported_phishing")}
-            >
-              Phishing Olarak Raporla
-            </button>
-            <button
-              className="btn-outline"
-              style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
-              disabled={!!action}
-              onClick={() => setAction("ignored")}
-            >
-              Sil / Görmezden Gel
-            </button>
+            {content.format === "web" ? (
+              <button
+                className="btn-outline"
+                style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
+                disabled={!!action}
+                onClick={() => setAction("closed_tab")}
+              >
+                Sekmeyi Kapat / Geri Dön
+              </button>
+            ) : (
+              <>
+                <button
+                  className="btn-danger"
+                  style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
+                  disabled={!!action}
+                  onClick={() => setAction("reported_phishing")}
+                >
+                  Phishing Olarak Raporla
+                </button>
+                <button
+                  className="btn-outline"
+                  style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
+                  disabled={!!action}
+                  onClick={() => setAction("ignored")}
+                >
+                  Sil / Görmezden Gel
+                </button>
+              </>
+            )
           </div>
         </div>
       </div>

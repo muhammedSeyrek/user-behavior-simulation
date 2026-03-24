@@ -35,14 +35,27 @@ export interface SessionOut {
 export interface SimulationContent {
   id: string;
   type: "phishing" | "legitimate";
+  format: "email" | "web";
   category: string;
-  sender_name: string;
-  sender_email: string;
-  subject: string;
-  body: string;
-  link_text: string;
-  link_url: string;
   warning_signs: string[];
+
+  // E-posta alanları
+  sender_name?: string;
+  sender_email?: string;
+  subject?: string;
+  body?: string;
+  link_text?: string;
+  link_url?: string;
+
+  // Web sayfası alanları
+  brand?: string;
+  favicon?: string;
+  fake_url?: string;
+  page_title?: string;
+  headline?: string;
+  subtext?: string;
+  fields?: { label: string; type: string; placeholder: string }[];
+  submit_text?: string;
 }
 
 export interface DashboardStats {

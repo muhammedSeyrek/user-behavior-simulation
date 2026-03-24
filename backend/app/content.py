@@ -6,10 +6,11 @@ Gerçek bir saldırı amaçlanmamaktadır; tümü eğitim/araştırma simülasyo
 import random
 
 SIMULATION_CONTENT = [
-    # ── PHISHİNG İÇERİKLERİ ─────────────────────────────────────────────────
+    # ── E-POSTA — PHISHİNG ──────────────────────────────────────────────────
     {
         "id": "phish_bank_01",
         "type": "phishing",
+        "format": "email",
         "category": "bank",
         "sender_name": "Garanti BBVA Güvenlik",
         "sender_email": "guvenlik@garantibbva-destek.net",
@@ -33,6 +34,7 @@ SIMULATION_CONTENT = [
     {
         "id": "phish_it_01",
         "type": "phishing",
+        "format": "email",
         "category": "it_support",
         "sender_name": "BT Destek Ekibi",
         "sender_email": "it-destek@sirket-bilgi.com",
@@ -40,7 +42,7 @@ SIMULATION_CONTENT = [
         "body": (
             "Tüm Çalışanlarımıza,\n\n"
             "Sistem güvenlik politikası gereği tüm kullanıcıların şifrelerini "
-            "bugün mesai bitimine kadar güncellenmesi zorunludur. "
+            "bugün mesai bitimine kadar güncellemesi zorunludur. "
             "Şifrenizi güncellemezseniz sisteme erişiminiz engellenecektir.\n\n"
             "Şifrenizi güncellemek için:"
         ),
@@ -56,6 +58,7 @@ SIMULATION_CONTENT = [
     {
         "id": "phish_prize_01",
         "type": "phishing",
+        "format": "email",
         "category": "prize",
         "sender_name": "Amazon Türkiye Ödüller",
         "sender_email": "oduller@amazon-tr-kampanya.com",
@@ -76,10 +79,11 @@ SIMULATION_CONTENT = [
         ],
     },
 
-    # ── MEŞRU İÇERİKLER ─────────────────────────────────────────────────────
+    # ── E-POSTA — MEŞRU ─────────────────────────────────────────────────────
     {
         "id": "legit_newsletter_01",
         "type": "legitimate",
+        "format": "email",
         "category": "newsletter",
         "sender_name": "Medium Daily Digest",
         "sender_email": "noreply@medium.com",
@@ -97,6 +101,7 @@ SIMULATION_CONTENT = [
     {
         "id": "legit_meeting_01",
         "type": "legitimate",
+        "format": "email",
         "category": "meeting",
         "sender_name": "Google Takvim",
         "sender_email": "calendar-notification@google.com",
@@ -116,6 +121,7 @@ SIMULATION_CONTENT = [
     {
         "id": "legit_system_01",
         "type": "legitimate",
+        "format": "email",
         "category": "system",
         "sender_name": "GitHub",
         "sender_email": "noreply@github.com",
@@ -132,6 +138,138 @@ SIMULATION_CONTENT = [
         ),
         "link_text": "Hesabımı Görüntüle",
         "link_url": "#simulation-legit",
+        "warning_signs": [],
+    },
+
+    # ── WEB SAYFASI — PHISHİNG ───────────────────────────────────────────────
+    {
+        "id": "web_phish_bank_01",
+        "type": "phishing",
+        "format": "web",
+        "category": "bank",
+        "brand": "Garanti BBVA",
+        "favicon": "🏦",
+        "fake_url": "https://garantibbva-guvenlik.net/dogrula",
+        "page_title": "Hesap Güvenlik Doğrulaması",
+        "headline": "Hesabınız Güvenlik Nedeniyle Kısıtlandı",
+        "subtext": "Kimliğinizi doğrulamak için müşteri numaranızı ve internet şifrenizi giriniz.",
+        "fields": [
+            {"label": "Müşteri Numarası", "type": "text", "placeholder": "T.C. kimlik numaranız"},
+            {"label": "İnternet Şifresi", "type": "password", "placeholder": "••••••••"},
+        ],
+        "submit_text": "Kimliğimi Doğrula",
+        "warning_signs": [
+            "URL 'garantibbva-guvenlik.net' — resmi domain 'garantibbva.com.tr' değil",
+            "Bankalar asla web formuyla şifre talep etmez",
+            "HTTPS olsa bile sahte domain güvenli değildir",
+            "T.C. kimlik numarası ile şifre aynı anda isteniyor",
+        ],
+    },
+    {
+        "id": "web_phish_corp_01",
+        "type": "phishing",
+        "format": "web",
+        "category": "corporate",
+        "brand": "Microsoft 365",
+        "favicon": "🔷",
+        "fake_url": "https://microsoft365-oturum.net/tr/giris",
+        "page_title": "Microsoft'a Oturum Açın",
+        "headline": "Oturumunuzun süresi doldu",
+        "subtext": "Devam etmek için Microsoft hesabınızla yeniden giriş yapın.",
+        "fields": [
+            {"label": "E-posta veya telefon", "type": "email", "placeholder": "ornek@sirket.com"},
+            {"label": "Parola", "type": "password", "placeholder": "••••••••"},
+        ],
+        "submit_text": "Oturum Aç",
+        "warning_signs": [
+            "URL 'microsoft365-oturum.net' — resmi 'login.microsoftonline.com' değil",
+            "Meşru Microsoft sayfaları hiçbir zaman üçüncü parti domain kullanmaz",
+            "Oturum süresi doldu bildirimi sizi sahte sayfaya yönlendirebilir",
+        ],
+    },
+    {
+        "id": "web_phish_cargo_01",
+        "type": "phishing",
+        "format": "web",
+        "category": "delivery",
+        "brand": "Yurtiçi Kargo",
+        "favicon": "📦",
+        "fake_url": "https://yurtici-kargo-takip.com/teslim-guncelle",
+        "page_title": "Kargo Teslim Bildirimi",
+        "headline": "Kargonuz Teslim Edilemedi",
+        "subtext": "Adres güncellemesi için 2,90 TL gümrük ücreti ödenmesi gerekmektedir.",
+        "fields": [
+            {"label": "Kart Numarası", "type": "text", "placeholder": "0000 0000 0000 0000"},
+            {"label": "Son Kullanma Tarihi", "type": "text", "placeholder": "AA/YY"},
+            {"label": "CVV", "type": "password", "placeholder": "•••"},
+        ],
+        "submit_text": "Ödemeyi Tamamla",
+        "warning_signs": [
+            "Kargo şirketleri asla ödeme formu göndermez",
+            "URL 'yurtici-kargo-takip.com' — resmi 'yurticikargo.com' değil",
+            "Küçük bir ücret bahanesiyle kart bilgisi çalınıyor",
+        ],
+    },
+    {
+        "id": "web_phish_ecom_01",
+        "type": "phishing",
+        "format": "web",
+        "category": "ecommerce",
+        "brand": "Amazon",
+        "favicon": "🛍️",
+        "fake_url": "https://amazon-tr-hesap.com/odeme/guncelle",
+        "page_title": "Ödeme Bilgisi Güncelleme",
+        "headline": "Hesabınızda Ödeme Sorunu Tespit Edildi",
+        "subtext": "Son siparişiniz işleme alınamadı. Devam etmek için ödeme bilgilerinizi güncelleyin.",
+        "fields": [
+            {"label": "Kart Üzerindeki İsim", "type": "text", "placeholder": "Ad Soyad"},
+            {"label": "Kart Numarası", "type": "text", "placeholder": "0000 0000 0000 0000"},
+            {"label": "Son Kullanma", "type": "text", "placeholder": "AA/YY"},
+            {"label": "CVV", "type": "password", "placeholder": "•••"},
+        ],
+        "submit_text": "Güncelle ve Devam Et",
+        "warning_signs": [
+            "URL 'amazon-tr-hesap.com' — resmi 'amazon.com.tr' değil",
+            "Amazon ödeme sorunlarını e-posta / web formu ile çözmez",
+            "4 alanda kart bilgisi talep ediliyor",
+        ],
+    },
+
+    # ── WEB SAYFASI — MEŞRU ─────────────────────────────────────────────────
+    {
+        "id": "web_legit_bank_01",
+        "type": "legitimate",
+        "format": "web",
+        "category": "bank",
+        "brand": "İş Bankası",
+        "favicon": "🏛️",
+        "fake_url": "https://isbank.com.tr/bireysel/giris",
+        "page_title": "İnternet Bankacılığı",
+        "headline": "İş Bankası İnternet Bankacılığı",
+        "subtext": "Güvenli bağlantı ile hesabınıza giriş yapın.",
+        "fields": [
+            {"label": "Müşteri Numarası", "type": "text", "placeholder": "Müşteri numaranız"},
+            {"label": "İnternet Şifresi", "type": "password", "placeholder": "••••••••"},
+        ],
+        "submit_text": "Giriş Yap",
+        "warning_signs": [],
+    },
+    {
+        "id": "web_legit_corp_01",
+        "type": "legitimate",
+        "format": "web",
+        "category": "corporate",
+        "brand": "Kurumsal VPN Portalı",
+        "favicon": "🔐",
+        "fake_url": "https://vpn.sirketim.com.tr/uzak-erisim",
+        "page_title": "Uzaktan Erişim Portalı",
+        "headline": "Kurumsal Ağa Güvenli Bağlan",
+        "subtext": "Uzaktan çalışmak için kurumsal kimlik bilgilerinizi girin.",
+        "fields": [
+            {"label": "Kullanıcı Adı", "type": "text", "placeholder": "ad.soyad"},
+            {"label": "Şifre", "type": "password", "placeholder": "••••••••"},
+        ],
+        "submit_text": "Bağlan",
         "warning_signs": [],
     },
 ]

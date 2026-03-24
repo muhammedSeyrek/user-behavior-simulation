@@ -13,8 +13,8 @@ router = APIRouter(prefix="/interactions", tags=["interactions"])
 # phishing içeriği → doğru karar: "reported_phishing" veya "ignored"
 # meşru içerik     → doğru karar: "clicked_link"
 _CORRECT_ACTIONS = {
-    "phishing": {"reported_phishing", "ignored"},
-    "legitimate": {"clicked_link"},
+    "phishing": {"reported_phishing", "ignored", "closed_tab"},
+    "legitimate": {"clicked_link", "submitted_form"},
 }
 
 
