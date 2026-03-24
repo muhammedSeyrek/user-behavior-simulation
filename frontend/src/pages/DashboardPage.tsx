@@ -42,8 +42,10 @@ function AuthGate({ onAuth }: { onAuth: (u: string, p: string) => void }) {
       if (res.ok) {
         sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ username, password }));
         onAuth(username, password);
-      } else {
+      } else if (res.status === 401) {
         setError("Kullanıcı adı veya şifre hatalı.");
+      } else {
+        setError(`Sunucu hatası (${res.status}). Backend rebuild gerekebilir: docker-compose up --build -d`);
       }
     } catch {
       setError("Sunucuya bağlanılamadı.");
