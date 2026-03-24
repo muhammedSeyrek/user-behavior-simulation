@@ -316,7 +316,8 @@ form input[type="text"],
   transition: border-color 0.1s, box-shadow 0.1s;
 }
 
-form select {
+form select,
+select {
   width: 100%;
   padding: 10px 36px 10px 12px;
   border: 1px solid var(--gray-50);
@@ -337,7 +338,8 @@ form select {
   transition: border-color 0.1s, box-shadow 0.1s, background-color 0.1s;
 }
 
-form select:hover {
+form select:hover,
+select:hover {
   background-color: var(--gray-10);
 }
 
