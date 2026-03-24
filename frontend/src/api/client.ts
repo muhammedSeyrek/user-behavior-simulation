@@ -114,9 +114,10 @@ export const analyticsApi = {
   },
 
   verifyCredentials: (username: string, password: string) => {
-    const token = btoa(`${username}:${password}`);
-    return fetch("/api/participants/?limit=1", {
-      headers: { Authorization: `Basic ${token}` },
+    return fetch("/api/analytics/verify", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
     });
   },
 };

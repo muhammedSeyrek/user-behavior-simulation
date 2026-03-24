@@ -23,6 +23,8 @@ services:
       DATABASE_URL: postgresql://${POSTGRES_USER:-phish_user}:${POSTGRES_PASSWORD:-phish_pass}@db:5432/${POSTGRES_DB:-phish_db}
       SECRET_KEY: ${SECRET_KEY:-supersecretkey123}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      RESEARCHER_USERNAME: ${RESEARCHER_USERNAME:-researcher}
+      RESEARCHER_PASSWORD: ${RESEARCHER_PASSWORD:-phishsim2024}
     ports:
       - "8000:8000"
     depends_on:
