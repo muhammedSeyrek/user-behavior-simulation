@@ -26,7 +26,7 @@ def verify_auth(body: AuthVerifyRequest):
     return {"status": "ok"}
 
 
-@router.get("/dashboard", response_model=DashboardStats)
+@router.get("/dashboard", response_model=DashboardStats, dependencies=[Depends(require_researcher)])
 def get_dashboard(db: Session = Depends(get_db)):
     total_participants = db.scalar(select(func.count()).select_from(Participant))
     total_sessions = db.scalar(select(func.count()).select_from(SimulationSession))

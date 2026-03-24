@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- IBM Carbon koyu mavi arka plan -->
+  <rect width="32" height="32" rx="5" fill="#0f62fe"/>
+  <!-- Balık kancası gövdesi: yukarıdan aşağı kıvrımlı -->
+  <path d="M11 5 L11 18 Q11 25 18 25 Q23 25 23 20 L23 19"
+        stroke="white" stroke-width="2.2" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Kanca ucu (aşağı kıvrım) -->
+  <path d="M23 19 Q25 16 21 15"
+        stroke="white" stroke-width="2.2" fill="none"
+        stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- İp / misina: üstte yatay çizgi -->
+  <line x1="8" y1="5" x2="16" y2="5"
+        stroke="white" stroke-width="2.2" stroke-linecap="round"/>
+  <!-- Küçük parlama noktası (yem) -->
+  <circle cx="21" cy="15" r="1.8" fill="#82cfff"/>
+</svg>

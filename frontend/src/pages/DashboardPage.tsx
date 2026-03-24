@@ -163,10 +163,16 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const data = await analyticsApi.getDashboard();
+      const data = await analyticsApi.getDashboard(auth!.username, auth!.password);
       setStats(data);
       setLastRefresh(new Date());
-    } catch {
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 401) {
+        sessionStorage.removeItem(STORAGE_KEY);
+        setAuth(null);
+        return;
+      }
       setError("Veri yüklenemedi. Backend çalışıyor mu?");
     } finally {
       setLoading(false);

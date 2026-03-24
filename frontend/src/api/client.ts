@@ -153,8 +153,12 @@ export const passwordAnalysisApi = {
 };
 
 export const analyticsApi = {
-  getDashboard: () =>
-    api.get<DashboardStats>("/analytics/dashboard").then((r) => r.data),
+  getDashboard: (username: string, password: string) =>
+    api
+      .get<DashboardStats>("/analytics/dashboard", {
+        headers: { Authorization: `Basic ${btoa(`${username}:${password}`)}` },
+      })
+      .then((r) => r.data),
 
   exportCsv: (username: string, password: string) => {
     const token = btoa(`${username}:${password}`);
