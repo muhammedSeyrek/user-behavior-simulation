@@ -1,3 +1,5 @@
+import json
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
@@ -24,12 +26,24 @@ def log_interaction(data: InteractionCreate, db: Session = Depends(get_db)):
 
     correct = data.action in _CORRECT_ACTIONS.get(session.content_type, set())
 
+    # confidence ve motivation verilerini extra_data JSON'a paketle
+    extra: dict = {}
+    if data.extra_data:
+        try:
+            extra = json.loads(data.extra_data)
+        except json.JSONDecodeError:
+            extra = {"raw": data.extra_data}
+    if data.confidence_score is not None:
+        extra["confidence_score"] = data.confidence_score
+    if data.decision_motivation:
+        extra["decision_motivation"] = data.decision_motivation
+
     interaction = UserInteraction(
         session_id=data.session_id,
         action=data.action,
         time_to_action_ms=data.time_to_action_ms,
         correct_decision=correct,
-        extra_data=data.extra_data,
+        extra_data=json.dumps(extra, ensure_ascii=False) if extra else None,
     )
     db.add(interaction)
     db.commit()

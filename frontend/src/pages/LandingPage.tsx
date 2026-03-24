@@ -36,8 +36,10 @@ export default function LandingPage() {
     setError("");
     try {
       const participant = await participantApi.create({ ...form, consent_given: true });
-      const session = await sessionApi.create(participant.id);
-      navigate("/simulation", { state: { session_id: session.id } });
+      const sessions = await sessionApi.createBatch(participant.id, 5);
+      navigate("/simulation", {
+        state: { session_ids: sessions.map((s) => s.id), participant_id: participant.id },
+      });
     } catch {
       setError("Bir hata oluştu. Lütfen tekrar deneyin.");
     } finally {

@@ -35,6 +35,12 @@ class SessionCreate(BaseModel):
     device_type: str | None = None
 
 
+class SessionBatchCreate(BaseModel):
+    participant_id: str
+    count: int = 5
+    user_agent: str | None = None
+
+
 class SessionOut(BaseModel):
     id: str
     content_id: str
@@ -52,6 +58,8 @@ class InteractionCreate(BaseModel):
     session_id: str
     action: str
     time_to_action_ms: int | None = None
+    confidence_score: int | None = None      # 1-5 Likert
+    decision_motivation: list[str] | None = None  # seçilen sebepler
     extra_data: str | None = None
 
 
@@ -72,6 +80,22 @@ class InteractionOut(BaseModel):
 class AuthVerifyRequest(BaseModel):
     username: str
     password: str
+
+
+# ── Survey ───────────────────────────────────────────────────────────────────
+
+class SurveyCreate(BaseModel):
+    participant_id: str
+    responses: dict  # soru → cevap map'i
+
+
+class SurveyOut(BaseModel):
+    id: str
+    participant_id: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
 
 
 # ── Dashboard / Analytics ────────────────────────────────────────────────────

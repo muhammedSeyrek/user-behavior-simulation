@@ -73,3 +73,14 @@ class UserInteraction(Base):
     extra_data: Mapped[str | None] = mapped_column(Text)  # JSON string
 
     session: Mapped["SimulationSession"] = relationship(back_populates="interactions")
+
+
+class SurveyResponse(Base):
+    """Simülasyon sonrası kullanıcı anketi (web alışkanlıkları + güvenlik farkındalığı)."""
+
+    __tablename__ = "survey_responses"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    participant_id: Mapped[str] = mapped_column(ForeignKey("participants.id"))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    responses: Mapped[str] = mapped_column(Text)  # JSON — tüm soru/cevaplar

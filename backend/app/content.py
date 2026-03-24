@@ -142,6 +142,13 @@ def get_random_content() -> dict:
     return random.choice(SIMULATION_CONTENT)
 
 
+def get_n_unique_content(n: int) -> list[dict]:
+    """n adet tekrarsız içerik döndür (karıştırılmış)."""
+    pool = SIMULATION_CONTENT.copy()
+    random.shuffle(pool)
+    return pool[:n]
+
+
 def get_content_by_id(content_id: str) -> dict | None:
     return next((c for c in SIMULATION_CONTENT if c["id"] == content_id), None)
 

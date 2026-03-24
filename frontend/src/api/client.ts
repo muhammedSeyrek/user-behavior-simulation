@@ -78,6 +78,15 @@ export const sessionApi = {
       })
       .then((r) => r.data),
 
+  createBatch: (participant_id: string, count = 5) =>
+    api
+      .post<SessionOut[]>("/sessions/batch", {
+        participant_id,
+        count,
+        user_agent: navigator.userAgent,
+      })
+      .then((r) => r.data),
+
   getContent: (session_id: string) =>
     api
       .get<{ session_id: string; content: SimulationContent }>(
@@ -86,13 +95,30 @@ export const sessionApi = {
       .then((r) => r.data),
 };
 
+export interface RoundResult {
+  round: number;           // 1-indexed
+  session_id: string;
+  action: string;
+  content: SimulationContent;
+  confidence_score: number;
+  decision_motivation: string[];
+  time_to_action_ms: number;
+}
+
 export const interactionApi = {
   log: (data: {
     session_id: string;
     action: string;
     time_to_action_ms?: number;
+    confidence_score?: number;
+    decision_motivation?: string[];
     extra_data?: string;
   }) => api.post("/interactions/", data).then((r) => r.data),
+};
+
+export const surveyApi = {
+  submit: (participant_id: string, responses: Record<string, unknown>) =>
+    api.post("/survey/", { participant_id, responses }).then((r) => r.data),
 };
 
 export const analyticsApi = {

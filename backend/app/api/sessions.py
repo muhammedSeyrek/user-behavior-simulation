@@ -3,10 +3,10 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.content import get_random_content, get_content_by_id
+from app.content import get_random_content, get_content_by_id, get_n_unique_content
 from app.database import get_db
 from app.models import Participant, SimulationSession
-from app.schemas import SessionCreate, SessionOut
+from app.schemas import SessionBatchCreate, SessionCreate, SessionOut
 
 router = APIRouter(prefix="/sessions", tags=["sessions"])
 
@@ -41,6 +41,38 @@ def create_session(data: SessionCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(session)
     return session
+
+
+@router.post("/batch", response_model=list[SessionOut], status_code=201)
+def create_batch_sessions(data: SessionBatchCreate, db: Session = Depends(get_db)):
+    """Birden fazla tekrarsız simülasyon oturumu oluştur."""
+    participant = db.get(Participant, data.participant_id)
+    if not participant:
+        raise HTTPException(status_code=404, detail="Katılımcı bulunamadı.")
+
+    count = max(1, min(data.count, 10))  # 1-10 arası sınırla
+    contents = get_n_unique_content(count)
+    device = _detect_device(data.user_agent)
+    hour = datetime.utcnow().hour
+
+    sessions = []
+    for content in contents:
+        session = SimulationSession(
+            participant_id=data.participant_id,
+            content_id=content["id"],
+            content_type=content["type"],
+            content_category=content["category"],
+            user_agent=data.user_agent,
+            device_type=device,
+            hour_of_day=hour,
+        )
+        db.add(session)
+        sessions.append(session)
+
+    db.commit()
+    for s in sessions:
+        db.refresh(s)
+    return sessions
 
 
 @router.get("/{session_id}/content")
