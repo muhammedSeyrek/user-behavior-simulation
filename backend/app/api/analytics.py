@@ -78,9 +78,6 @@ def get_dashboard(db: Session = Depends(get_db)):
         select(
             Participant.it_experience,
             func.count(UserInteraction.id).label("total"),
-            func.sum(
-                func.cast(UserInteraction.correct_decision, type_=func.Integer if False else None)
-            ).label("correct"),
         )
         .join(SimulationSession, Participant.id == SimulationSession.participant_id)
         .join(UserInteraction, SimulationSession.id == UserInteraction.session_id)
