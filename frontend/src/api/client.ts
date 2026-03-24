@@ -70,7 +70,7 @@ export interface DashboardStats {
   by_it_experience: { it_experience: string; total: number }[];
   recent_interactions: {
     action: string;
-    correct: boolean;
+    correct: boolean | null;
     time_ms: number | null;
     content_type: string;
     category: string;
