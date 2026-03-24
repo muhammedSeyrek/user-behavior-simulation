@@ -387,7 +387,7 @@ export default function SimulationPage() {
                   Sil / Görmezden Gel
                 </button>
               </>
-            )
+            )}
           </div>
         </div>
       </div>
