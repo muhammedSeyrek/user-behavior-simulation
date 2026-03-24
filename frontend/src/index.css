@@ -301,7 +301,6 @@ form label,
   text-transform: uppercase;
 }
 
-form select,
 form input[type="text"],
 .form-input {
   width: 100%;
@@ -315,6 +314,31 @@ form input[type="text"],
   background: white;
   outline: none;
   transition: border-color 0.1s, box-shadow 0.1s;
+}
+
+form select {
+  width: 100%;
+  padding: 10px 36px 10px 12px;
+  border: 1px solid var(--gray-50);
+  border-bottom: 1px solid var(--gray-100);
+  border-radius: 0;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  color: var(--gray-100);
+  background-color: white;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath fill='%23525252' d='M8 10.94L2.83 5.77l.7-.7L8 9.54l4.47-4.47.7.7z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px 16px;
+  appearance: none;
+  -webkit-appearance: none;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.1s, box-shadow 0.1s, background-color 0.1s;
+}
+
+form select:hover {
+  background-color: var(--gray-10);
 }
 
 form select:focus,
