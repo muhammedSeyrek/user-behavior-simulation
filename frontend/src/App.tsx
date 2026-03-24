@@ -8,9 +8,12 @@ export default function App() {
   return (
     <>
       <nav className="nav">
-        <span className="nav-brand">🛡️ PhishSim</span>
-        <NavLink to="/" className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}>
-          Ana Sayfa
+        <span className="nav-brand">PhishSim</span>
+        <NavLink
+          to="/"
+          className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+        >
+          Simülasyon
         </NavLink>
         <NavLink
           to="/dashboard"

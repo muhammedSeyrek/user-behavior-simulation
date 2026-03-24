@@ -10,11 +10,10 @@ import {
   PieChart,
   Pie,
   Cell,
-  Legend,
 } from "recharts";
 import { analyticsApi, DashboardStats } from "../api/client";
 
-const COLORS = ["#2563eb", "#16a34a", "#d97706", "#dc2626", "#7c3aed", "#0891b2"];
+const IBM_COLORS = ["#0f62fe", "#198038", "#da1e28", "#8a3ffc", "#0072c3", "#005d5d"];
 
 export default function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
@@ -39,8 +38,30 @@ export default function DashboardPage() {
     load();
   }, []);
 
-  if (loading && !stats) return <LoadingScreen />;
-  if (error) return <ErrorScreen message={error} onRetry={load} />;
+  if (loading && !stats) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "var(--gray-50)" }}>
+        Yükleniyor...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page">
+        <div className="container" style={{ maxWidth: 500 }}>
+          <div className="notification notif-danger" style={{ marginBottom: 16 }}>
+            <span className="notification-label">Hata</span>
+            <span>{error}</span>
+          </div>
+          <button className="btn-primary" onClick={load}>
+            Tekrar Dene
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!stats) return null;
 
   const noData = stats.total_participants === 0;
@@ -53,26 +74,49 @@ export default function DashboardPage() {
           style={{
             display: "flex",
             justifyContent: "space-between",
-            alignItems: "center",
+            alignItems: "flex-end",
             marginBottom: 28,
             flexWrap: "wrap",
             gap: 12,
           }}
         >
           <div>
-            <h1 style={{ fontSize: 22, fontWeight: 700 }}>Araştırmacı Dashboard</h1>
-            <p style={{ color: "var(--gray-600)", fontSize: 13, marginTop: 2 }}>
-              Son güncelleme: {lastRefresh.toLocaleTimeString("tr-TR")}
+            <p
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--gray-50)",
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
+                marginBottom: 4,
+              }}
+            >
+              Araştırmacı Paneli
             </p>
+            <h1 style={{ fontSize: 20 }}>Dashboard</h1>
           </div>
-          <button className="btn-outline" onClick={load} disabled={loading}>
-            {loading ? "Yükleniyor..." : "↻ Yenile"}
-          </button>
+          <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <span
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--gray-50)",
+              }}
+            >
+              {lastRefresh.toLocaleTimeString("tr-TR")}
+            </span>
+            <button className="btn-outline" onClick={load} disabled={loading}>
+              {loading ? "..." : "Yenile"}
+            </button>
+          </div>
         </div>
 
         {noData && (
-          <div className="alert alert-info" style={{ marginBottom: 24 }}>
-            Henüz veri yok. Ana sayfadan bir simülasyon tamamlayarak başlayabilirsiniz.
+          <div className="notification notif-info" style={{ marginBottom: 24 }}>
+            <span className="notification-label">Bilgi</span>
+            <span>
+              Henüz veri yok. Ana sayfadan bir simülasyon tamamlayarak başlayabilirsiniz.
+            </span>
           </div>
         )}
 
@@ -84,12 +128,12 @@ export default function DashboardPage() {
           <StatCard
             value={`%${stats.phishing_click_rate}`}
             label="Phishing Tıklama Oranı"
-            danger={stats.phishing_click_rate > 40}
+            variant={stats.phishing_click_rate > 40 ? "danger" : undefined}
           />
           <StatCard
             value={`%${stats.correct_decision_rate}`}
             label="Doğru Karar Oranı"
-            success={stats.correct_decision_rate > 60}
+            variant={stats.correct_decision_rate > 60 ? "success" : undefined}
           />
           <StatCard
             value={
@@ -103,42 +147,58 @@ export default function DashboardPage() {
 
         {!noData && (
           <>
-            {/* Grafik satırı 1 */}
+            {/* Grafik satırı */}
             <div
               style={{
                 display: "grid",
                 gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
-                gap: 20,
-                marginBottom: 20,
+                gap: 16,
+                marginBottom: 16,
               }}
             >
-              {/* Departmana göre */}
               <div className="card">
-                <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: 15 }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    color: "var(--gray-70)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    marginBottom: 16,
+                  }}
+                >
                   Bölüm / Alan Dağılımı
                 </h3>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={200}>
                   <BarChart data={stats.by_department} layout="vertical">
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis type="number" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-20)" />
+                    <XAxis type="number" tick={{ fontSize: 11, fontFamily: "IBM Plex Mono" }} />
                     <YAxis
                       dataKey="department"
                       type="category"
-                      width={120}
-                      tick={{ fontSize: 11 }}
+                      width={110}
+                      tick={{ fontSize: 11, fontFamily: "IBM Plex Mono" }}
                     />
-                    <Tooltip />
-                    <Bar dataKey="sessions" fill="#2563eb" radius={[0, 4, 4, 0]} />
+                    <Tooltip contentStyle={{ fontFamily: "IBM Plex Mono", fontSize: 12 }} />
+                    <Bar dataKey="sessions" fill="#0f62fe" radius={0} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
 
-              {/* Yaş grubu */}
               <div className="card">
-                <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: 15 }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    color: "var(--gray-70)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    marginBottom: 16,
+                  }}
+                >
                   Yaş Grubu Dağılımı
                 </h3>
-                <ResponsiveContainer width="100%" height={220}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={stats.by_age_group}
@@ -153,10 +213,13 @@ export default function DashboardPage() {
                       labelLine={false}
                     >
                       {stats.by_age_group.map((_, i) => (
-                        <Cell key={i} fill={COLORS[i % COLORS.length]} />
+                        <Cell key={i} fill={IBM_COLORS[i % IBM_COLORS.length]} />
                       ))}
                     </Pie>
-                    <Tooltip formatter={(v) => [`${v} oturum`]} />
+                    <Tooltip
+                      formatter={(v) => [`${v} oturum`]}
+                      contentStyle={{ fontFamily: "IBM Plex Mono", fontSize: 12 }}
+                    />
                   </PieChart>
                 </ResponsiveContainer>
               </div>
@@ -164,41 +227,71 @@ export default function DashboardPage() {
 
             {/* BT Deneyimi */}
             {stats.by_it_experience.length > 0 && (
-              <div className="card" style={{ marginBottom: 20 }}>
-                <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: 15 }}>
-                  BT Deneyimine Göre Etkileşim Sayısı
+              <div className="card" style={{ marginBottom: 16 }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    color: "var(--gray-70)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    marginBottom: 16,
+                  }}
+                >
+                  BT Deneyimine Göre Etkileşim
                 </h3>
-                <ResponsiveContainer width="100%" height={200}>
+                <ResponsiveContainer width="100%" height={180}>
                   <BarChart data={stats.by_it_experience}>
-                    <CartesianGrid strokeDasharray="3 3" />
-                    <XAxis dataKey="it_experience" />
-                    <YAxis />
-                    <Tooltip />
-                    <Bar dataKey="total" fill="#7c3aed" radius={[4, 4, 0, 0]} name="Etkileşim" />
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--gray-20)" />
+                    <XAxis
+                      dataKey="it_experience"
+                      tick={{ fontSize: 11, fontFamily: "IBM Plex Mono" }}
+                    />
+                    <YAxis tick={{ fontSize: 11, fontFamily: "IBM Plex Mono" }} />
+                    <Tooltip contentStyle={{ fontFamily: "IBM Plex Mono", fontSize: 12 }} />
+                    <Bar dataKey="total" fill="#8a3ffc" radius={0} name="Etkileşim" />
                   </BarChart>
                 </ResponsiveContainer>
               </div>
             )}
 
-            {/* Son etkileşimler */}
+            {/* Son etkileşimler tablosu */}
             {stats.recent_interactions.length > 0 && (
               <div className="card">
-                <h3 style={{ fontWeight: 700, marginBottom: 16, fontSize: 15 }}>
+                <h3
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    fontSize: 12,
+                    color: "var(--gray-70)",
+                    letterSpacing: "0.04em",
+                    textTransform: "uppercase",
+                    marginBottom: 16,
+                  }}
+                >
                   Son Etkileşimler
                 </h3>
                 <div style={{ overflowX: "auto" }}>
-                  <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                  <table
+                    style={{
+                      width: "100%",
+                      borderCollapse: "collapse",
+                      fontSize: 13,
+                      fontFamily: "var(--font-mono)",
+                    }}
+                  >
                     <thead>
-                      <tr style={{ background: "var(--gray-50)" }}>
+                      <tr style={{ background: "var(--gray-10)" }}>
                         {["İçerik Türü", "Kategori", "Eylem", "Karar", "Süre"].map((h) => (
                           <th
                             key={h}
                             style={{
-                              padding: "10px 12px",
+                              padding: "8px 12px",
                               textAlign: "left",
-                              fontWeight: 600,
-                              color: "var(--gray-600)",
-                              borderBottom: "1px solid var(--gray-200)",
+                              fontWeight: 500,
+                              fontSize: 11,
+                              color: "var(--gray-70)",
+                              borderBottom: "1px solid var(--gray-20)",
+                              letterSpacing: "0.02em",
                               whiteSpace: "nowrap",
                             }}
                           >
@@ -212,39 +305,40 @@ export default function DashboardPage() {
                         <tr
                           key={i}
                           style={{
-                            borderBottom: "1px solid var(--gray-100)",
-                            background: i % 2 === 0 ? "white" : "var(--gray-50)",
+                            borderBottom: "1px solid var(--gray-10)",
                           }}
                         >
-                          <td style={{ padding: "9px 12px" }}>
+                          <td style={{ padding: "8px 12px" }}>
                             <span
-                              className={`badge ${
+                              className={`tag ${
                                 row.content_type === "phishing"
-                                  ? "badge-danger"
-                                  : "badge-success"
+                                  ? "tag-danger"
+                                  : "tag-success"
                               }`}
                             >
-                              {row.content_type === "phishing" ? "Phishing" : "Meşru"}
+                              {row.content_type === "phishing" ? "phishing" : "meşru"}
                             </span>
                           </td>
-                          <td style={{ padding: "9px 12px", color: "var(--gray-600)" }}>
+                          <td style={{ padding: "8px 12px", color: "var(--gray-70)" }}>
                             {row.category}
                           </td>
-                          <td style={{ padding: "9px 12px" }}>
+                          <td style={{ padding: "8px 12px", color: "var(--gray-100)" }}>
                             {ACTION_LABELS[row.action] ?? row.action}
                           </td>
-                          <td style={{ padding: "9px 12px" }}>
+                          <td style={{ padding: "8px 12px" }}>
                             <span
-                              className={`badge ${row.correct ? "badge-success" : "badge-danger"}`}
+                              style={{
+                                color: row.correct ? "var(--green-50)" : "var(--red-60)",
+                                fontWeight: 600,
+                              }}
                             >
-                              {row.correct ? "✓ Doğru" : "✗ Hatalı"}
+                              {row.correct ? "✓" : "✗"}
                             </span>
                           </td>
                           <td
                             style={{
-                              padding: "9px 12px",
-                              color: "var(--gray-600)",
-                              fontFamily: "monospace",
+                              padding: "8px 12px",
+                              color: "var(--gray-70)",
                             }}
                           >
                             {row.time_ms ? `${(row.time_ms / 1000).toFixed(1)}s` : "—"}
@@ -264,69 +358,25 @@ export default function DashboardPage() {
 }
 
 const ACTION_LABELS: Record<string, string> = {
-  clicked_link: "Tıkladı",
-  reported_phishing: "Raporladı",
-  ignored: "Sildi",
-  submitted_form: "Form Doldurdu",
+  clicked_link: "tıkladı",
+  reported_phishing: "raporladı",
+  ignored: "sildi",
+  submitted_form: "form doldurdu",
 };
 
 function StatCard({
   value,
   label,
-  danger,
-  success,
+  variant,
 }: {
   value: string | number;
   label: string;
-  danger?: boolean;
-  success?: boolean;
+  variant?: "danger" | "success";
 }) {
   return (
     <div className="stat-card">
-      <div
-        className="value"
-        style={{
-          color: danger
-            ? "var(--danger)"
-            : success
-            ? "var(--success)"
-            : "var(--primary)",
-        }}
-      >
-        {value}
-      </div>
+      <div className={`value${variant ? " " + variant : ""}`}>{value}</div>
       <div className="label">{label}</div>
-    </div>
-  );
-}
-
-function LoadingScreen() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "60vh",
-        color: "var(--gray-600)",
-      }}
-    >
-      Dashboard yükleniyor...
-    </div>
-  );
-}
-
-function ErrorScreen({ message, onRetry }: { message: string; onRetry: () => void }) {
-  return (
-    <div className="page">
-      <div className="container" style={{ maxWidth: 500, textAlign: "center" }}>
-        <div className="alert alert-danger" style={{ marginBottom: 16 }}>
-          {message}
-        </div>
-        <button className="btn-primary" onClick={onRetry}>
-          Tekrar Dene
-        </button>
-      </div>
     </div>
   );
 }

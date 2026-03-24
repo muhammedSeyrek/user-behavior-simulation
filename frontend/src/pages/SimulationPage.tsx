@@ -34,84 +34,102 @@ export default function SimulationPage() {
     if (actionTaken || !session_id) return;
     setActionTaken(true);
     const elapsed = Date.now() - startTimeRef.current;
-    await interactionApi.log({
-      session_id,
-      action,
-      time_to_action_ms: elapsed,
-    });
+    await interactionApi.log({ session_id, action, time_to_action_ms: elapsed });
     navigate("/awareness", { state: { action, content } });
   }
 
-  if (loading) return <LoadingScreen />;
-  if (error) return <ErrorScreen message={error} />;
+  if (loading) {
+    return (
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", height: "60vh", color: "var(--gray-50)" }}>
+        Yükleniyor...
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="page">
+        <div className="container" style={{ maxWidth: 500 }}>
+          <div className="notification notif-danger">
+            <span className="notification-label">Hata</span>
+            <span>{error}</span>
+          </div>
+          <button className="btn-primary" onClick={() => navigate("/")}>
+            Ana Sayfaya Dön
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (!content) return null;
 
   return (
     <div className="page">
-      <div className="container" style={{ maxWidth: 700 }}>
-        {/* Simülasyon uyarısı */}
-        <div className="alert alert-warning" style={{ marginBottom: 24 }}>
-          <strong>⚠️ Simülasyon:</strong> Aşağıdaki e-posta bir araştırma
-          simülasyonudur. Gerçek değildir.
+      <div className="container" style={{ maxWidth: 680 }}>
+        {/* Simülasyon bandı */}
+        <div className="notification notif-warning" style={{ marginBottom: 24 }}>
+          <span className="notification-label">Simülasyon</span>
+          <span>
+            Aşağıdaki e-posta bir araştırma simülasyonudur. Gerçek değildir.
+          </span>
         </div>
 
-        {/* E-posta içeriği */}
-        <div className="card" style={{ marginBottom: 20 }}>
-          {/* E-posta başlığı */}
+        {/* E-posta kutusu */}
+        <div className="card" style={{ marginBottom: 16 }}>
+          {/* Başlık */}
           <div
             style={{
-              borderBottom: "1px solid var(--gray-200)",
+              borderBottom: "1px solid var(--gray-20)",
               paddingBottom: 16,
               marginBottom: 20,
             }}
           >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 12,
-                marginBottom: 12,
-              }}
-            >
+            <div style={{ display: "flex", alignItems: "flex-start", gap: 12 }}>
               <div
                 style={{
-                  width: 42,
-                  height: 42,
-                  borderRadius: "50%",
-                  background: "var(--primary)",
-                  color: "white",
+                  width: 36,
+                  height: 36,
+                  background: "var(--gray-90)",
+                  color: "var(--gray-10)",
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontWeight: 700,
-                  fontSize: 16,
+                  fontFamily: "var(--font-mono)",
+                  fontWeight: 600,
+                  fontSize: 14,
                   flexShrink: 0,
                 }}
               >
-                {content.sender_name[0]}
+                {content.sender_name[0].toUpperCase()}
               </div>
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
                     display: "flex",
                     justifyContent: "space-between",
-                    alignItems: "center",
+                    alignItems: "baseline",
                     flexWrap: "wrap",
                     gap: 4,
+                    marginBottom: 2,
                   }}
                 >
-                  <span style={{ fontWeight: 700, fontSize: 15 }}>
-                    {content.sender_name}
-                  </span>
-                  <span style={{ fontSize: 12, color: "var(--gray-400)" }}>
+                  <span style={{ fontWeight: 600, fontSize: 14 }}>{content.sender_name}</span>
+                  <span
+                    style={{
+                      fontFamily: "var(--font-mono)",
+                      fontSize: 11,
+                      color: "var(--gray-50)",
+                    }}
+                  >
                     az önce
                   </span>
                 </div>
                 <div
                   style={{
+                    fontFamily: "var(--font-mono)",
                     fontSize: 12,
-                    color: "var(--gray-600)",
-                    fontFamily: "monospace",
+                    color: "var(--gray-70)",
                   }}
                 >
                   {content.sender_email}
@@ -119,110 +137,94 @@ export default function SimulationPage() {
               </div>
             </div>
 
-            <div style={{ fontWeight: 600, fontSize: 17, color: "var(--gray-900)" }}>
+            <div
+              style={{
+                fontWeight: 600,
+                fontSize: 15,
+                color: "var(--gray-100)",
+                marginTop: 14,
+              }}
+            >
               {content.subject}
             </div>
           </div>
 
-          {/* E-posta gövdesi */}
+          {/* Gövde */}
           <div
             style={{
               fontSize: 14,
-              color: "var(--gray-700)",
-              lineHeight: 1.8,
+              color: "var(--gray-70)",
+              lineHeight: 1.75,
               whiteSpace: "pre-line",
-              marginBottom: 20,
+              marginBottom: 24,
             }}
           >
             {content.body}
           </div>
 
-          {/* Link butonu */}
+          {/* Link alanı */}
           <div
             style={{
-              background: "var(--gray-50)",
-              border: "1px solid var(--gray-200)",
-              borderRadius: "var(--radius)",
+              background: "var(--gray-10)",
+              border: "1px solid var(--gray-20)",
               padding: 16,
-              textAlign: "center",
             }}
           >
             <button
               className="btn-primary"
-              style={{ padding: "12px 32px", fontSize: 15 }}
+              style={{ width: "100%", justifyContent: "center", padding: "12px 16px" }}
               disabled={actionTaken}
               onClick={() => handleAction("clicked_link")}
             >
-              🔗 {content.link_text}
+              {content.link_text}
             </button>
-            <div style={{ fontSize: 11, color: "var(--gray-400)", marginTop: 8 }}>
+            <div
+              style={{
+                fontFamily: "var(--font-mono)",
+                fontSize: 11,
+                color: "var(--gray-50)",
+                marginTop: 8,
+                textAlign: "center",
+              }}
+            >
               {content.link_url === "#simulation-click"
-                ? "Şüpheli bağlantı"
+                ? "https://..."
                 : content.link_url}
             </div>
           </div>
         </div>
 
-        {/* Karar butonları */}
+        {/* Karar paneli */}
         <div className="card">
           <p
             style={{
-              fontWeight: 600,
-              marginBottom: 16,
-              color: "var(--gray-700)",
+              fontSize: 13,
+              color: "var(--gray-70)",
+              marginBottom: 14,
+              fontWeight: 500,
             }}
           >
             Bu e-postayı nasıl değerlendiriyorsunuz?
           </p>
-          <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             <button
               className="btn-danger"
-              style={{ flex: 1, minWidth: 180 }}
+              style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
               disabled={actionTaken}
               onClick={() => handleAction("reported_phishing")}
             >
-              🚨 Phishing Olarak Raporla
+              Phishing Olarak Raporla
             </button>
             <button
               className="btn-outline"
-              style={{ flex: 1, minWidth: 180 }}
+              style={{ flex: 1, minWidth: 180, justifyContent: "center" }}
               disabled={actionTaken}
               onClick={() => handleAction("ignored")}
             >
-              🗑️ Sil / Görmezden Gel
+              Sil / Görmezden Gel
             </button>
           </div>
         </div>
-      </div>
-    </div>
-  );
-}
-
-function LoadingScreen() {
-  return (
-    <div
-      style={{
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        height: "60vh",
-        color: "var(--gray-600)",
-      }}
-    >
-      E-posta yükleniyor...
-    </div>
-  );
-}
-
-function ErrorScreen({ message }: { message: string }) {
-  const navigate = useNavigate();
-  return (
-    <div className="page">
-      <div className="container" style={{ maxWidth: 500, textAlign: "center" }}>
-        <div className="alert alert-danger">{message}</div>
-        <button className="btn-primary" onClick={() => navigate("/")}>
-          Ana Sayfaya Dön
-        </button>
       </div>
     </div>
   );
