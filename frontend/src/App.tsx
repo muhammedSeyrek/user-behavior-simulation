@@ -4,6 +4,7 @@ import SimulationPage from "./pages/SimulationPage";
 import SurveyPage from "./pages/SurveyPage";
 import AwarenessPage from "./pages/AwarenessPage";
 import DashboardPage from "./pages/DashboardPage";
+import PasswordStrengthPage from "./pages/PasswordStrengthPage";
 
 export default function App() {
   return (
@@ -22,6 +23,12 @@ export default function App() {
         >
           Dashboard
         </NavLink>
+        <NavLink
+          to="/sifre-gucu"
+          className={({ isActive }) => "nav-link" + (isActive ? " active" : "")}
+        >
+          Şifre Gücü
+        </NavLink>
       </nav>
 
       <Routes>
@@ -30,6 +37,7 @@ export default function App() {
         <Route path="/survey" element={<SurveyPage />} />
         <Route path="/awareness" element={<AwarenessPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/sifre-gucu" element={<PasswordStrengthPage />} />
       </Routes>
     </>
   );
