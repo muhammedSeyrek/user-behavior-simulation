@@ -3,7 +3,7 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.content import get_random_content, get_all_content
+from app.content import get_random_content, get_content_by_id
 from app.database import get_db
 from app.models import Participant, SimulationSession
 from app.schemas import SessionCreate, SessionOut
@@ -50,8 +50,7 @@ def get_session_content(session_id: str, db: Session = Depends(get_db)):
     if not session:
         raise HTTPException(status_code=404, detail="Oturum bulunamadı.")
 
-    all_content = get_all_content()
-    content = next((c for c in all_content if c["id"] == session.content_id), None)
+    content = get_content_by_id(session.content_id)
     if not content:
         raise HTTPException(status_code=404, detail="İçerik bulunamadı.")
 

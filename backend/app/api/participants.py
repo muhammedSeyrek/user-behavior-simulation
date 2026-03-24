@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.api.auth import require_researcher
@@ -45,8 +45,17 @@ def list_participants(
     if prior_training is not None:
         q = q.where(Participant.prior_training == prior_training)
 
-    total = len(db.execute(q).all())
+    total = db.scalar(select(func.count()).select_from(q.subquery()))
     rows = db.execute(q.offset(offset).limit(limit)).scalars().all()
+
+    # Tek sorguda tüm session sayılarını çek (N+1 önleme)
+    session_counts = dict(
+        db.execute(
+            select(SimulationSession.participant_id, func.count(SimulationSession.id))
+            .where(SimulationSession.participant_id.in_([p.id for p in rows]))
+            .group_by(SimulationSession.participant_id)
+        ).all()
+    ) if rows else {}
 
     return {
         "total": total,
@@ -61,7 +70,7 @@ def list_participants(
                 "department": p.department,
                 "it_experience": p.it_experience,
                 "prior_training": p.prior_training,
-                "session_count": len(p.sessions),
+                "session_count": session_counts.get(p.id, 0),
             }
             for p in rows
         ],
