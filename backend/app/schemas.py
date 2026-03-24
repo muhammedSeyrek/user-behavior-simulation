@@ -67,6 +67,13 @@ class InteractionOut(BaseModel):
         from_attributes = True
 
 
+# ── Auth ─────────────────────────────────────────────────────────────────────
+
+class AuthVerifyRequest(BaseModel):
+    username: str
+    password: str
+
+
 # ── Dashboard / Analytics ────────────────────────────────────────────────────
 
 class DashboardStats(BaseModel):

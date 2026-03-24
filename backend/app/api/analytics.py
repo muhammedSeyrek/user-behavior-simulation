@@ -11,18 +11,16 @@ from app.api.auth import require_researcher
 from app.config import settings
 from app.database import get_db
 from app.models import Participant, SimulationSession, UserInteraction
-from app.schemas import DashboardStats
+from app.schemas import AuthVerifyRequest, DashboardStats
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
 
 
 @router.post("/verify")
-def verify_auth(body: dict):
+def verify_auth(body: AuthVerifyRequest):
     """Araştırmacı kimlik bilgilerini doğrula (JSON body ile)."""
-    username = body.get("username", "")
-    password = body.get("password", "")
-    username_ok = secrets.compare_digest(username.encode(), settings.researcher_username.encode())
-    password_ok = secrets.compare_digest(password.encode(), settings.researcher_password.encode())
+    username_ok = secrets.compare_digest(body.username.encode(), settings.researcher_username.encode())
+    password_ok = secrets.compare_digest(body.password.encode(), settings.researcher_password.encode())
     if not (username_ok and password_ok):
         raise HTTPException(status_code=401, detail="Hatalı kimlik bilgileri.")
     return {"status": "ok"}
