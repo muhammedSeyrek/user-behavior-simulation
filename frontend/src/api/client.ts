@@ -75,6 +75,13 @@ export interface DashboardStats {
     content_type: string;
     category: string;
   }[];
+  password_tests: number;
+  avg_password_length: number;
+  avg_password_score: number;
+  pct_has_upper: number;
+  pct_has_lower: number;
+  pct_has_digit: number;
+  pct_has_special: number;
 }
 
 export const participantApi = {
@@ -132,6 +139,17 @@ export const interactionApi = {
 export const surveyApi = {
   submit: (participant_id: string, responses: Record<string, unknown>) =>
     api.post("/survey/", { participant_id, responses }).then((r) => r.data),
+};
+
+export const passwordAnalysisApi = {
+  log: (data: {
+    length: number;
+    has_upper: boolean;
+    has_lower: boolean;
+    has_digit: boolean;
+    has_special: boolean;
+    score: number;
+  }) => api.post("/password-analysis/", data).then((r) => r.data),
 };
 
 export const analyticsApi = {

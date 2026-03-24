@@ -84,3 +84,18 @@ class SurveyResponse(Base):
     participant_id: Mapped[str] = mapped_column(ForeignKey("participants.id"))
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     responses: Mapped[str] = mapped_column(Text)  # JSON — tüm soru/cevaplar
+
+
+class PasswordAnalysis(Base):
+    """Anonim şifre gücü analizi — gerçek şifre saklanmaz, sadece istatistikler."""
+
+    __tablename__ = "password_analyses"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=gen_uuid)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    length: Mapped[int] = mapped_column(Integer)
+    has_upper: Mapped[bool] = mapped_column(Boolean)
+    has_lower: Mapped[bool] = mapped_column(Boolean)
+    has_digit: Mapped[bool] = mapped_column(Boolean)
+    has_special: Mapped[bool] = mapped_column(Boolean)
+    score: Mapped[int] = mapped_column(Integer)

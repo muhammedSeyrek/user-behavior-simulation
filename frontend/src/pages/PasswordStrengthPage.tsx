@@ -1,11 +1,19 @@
 import { useState } from "react";
+import { passwordAnalysisApi } from "../api/client";
 
 interface Criteria {
   label: string;
   met: boolean;
 }
 
-function scorePassword(pwd: string): { score: number; criteria: Criteria[] } {
+function scorePassword(pwd: string): {
+  score: number;
+  criteria: Criteria[];
+  hasUpper: boolean;
+  hasLower: boolean;
+  hasDigit: boolean;
+  hasSpecial: boolean;
+} {
   const hasMinLength = pwd.length >= 8;
   const hasGoodLength = pwd.length >= 12;
   const hasUpper = /[A-Z]/.test(pwd);
@@ -30,7 +38,7 @@ function scorePassword(pwd: string): { score: number; criteria: Criteria[] } {
     { label: "Özel karakter içeriyor (!@#$%^&*…)", met: hasSpecial },
   ];
 
-  return { score, criteria };
+  return { score, criteria, hasUpper, hasLower, hasDigit, hasSpecial };
 }
 
 function getStrengthInfo(score: number): { label: string; color: string } {
@@ -44,12 +52,37 @@ function getStrengthInfo(score: number): { label: string; color: string } {
 export default function PasswordStrengthPage() {
   const [password, setPassword] = useState("");
   const [visible, setVisible] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const { score, criteria } = scorePassword(password);
+  const { score, criteria, hasUpper, hasLower, hasDigit, hasSpecial } = scorePassword(password);
   const { label, color } = getStrengthInfo(score);
   const hasInput = password.length > 0;
 
   const missing = criteria.filter((c) => !c.met).map((c) => c.label);
+
+  function handlePasswordChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setPassword(e.target.value);
+    setSaved(false);
+  }
+
+  async function handleSave() {
+    if (!hasInput || saving) return;
+    setSaving(true);
+    try {
+      await passwordAnalysisApi.log({
+        length: password.length,
+        has_upper: hasUpper,
+        has_lower: hasLower,
+        has_digit: hasDigit,
+        has_special: hasSpecial,
+        score,
+      });
+      setSaved(true);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div className="page">
@@ -75,7 +108,7 @@ export default function PasswordStrengthPage() {
           <input
             type={visible ? "text" : "password"}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={handlePasswordChange}
             placeholder="Şifrenizi buraya girin…"
             autoComplete="off"
             style={{
@@ -129,12 +162,7 @@ export default function PasswordStrengthPage() {
               fontSize: 13,
             }}
           >
-            <span
-              style={{
-                fontWeight: 600,
-                color: hasInput ? color : "var(--gray-40)",
-              }}
-            >
+            <span style={{ fontWeight: 600, color: hasInput ? color : "var(--gray-40)" }}>
               {hasInput ? label : "—"}
             </span>
             <span style={{ color: "var(--gray-60)" }}>
@@ -159,19 +187,11 @@ export default function PasswordStrengthPage() {
           </p>
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             {criteria.map((c) => (
-              <div
-                key={c.label}
-                style={{ display: "flex", alignItems: "center", gap: 10 }}
-              >
+              <div key={c.label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span
                   style={{
                     fontSize: 16,
-                    color:
-                      !hasInput
-                        ? "var(--gray-40)"
-                        : c.met
-                        ? "var(--green-50)"
-                        : "var(--red-60)",
+                    color: !hasInput ? "var(--gray-40)" : c.met ? "var(--green-50)" : "var(--red-60)",
                     lineHeight: 1,
                   }}
                 >
@@ -180,11 +200,7 @@ export default function PasswordStrengthPage() {
                 <span
                   style={{
                     fontSize: 13,
-                    color: !hasInput
-                      ? "var(--gray-50)"
-                      : c.met
-                      ? "var(--gray-80)"
-                      : "var(--gray-60)",
+                    color: !hasInput ? "var(--gray-50)" : c.met ? "var(--gray-80)" : "var(--gray-60)",
                   }}
                 >
                   {c.label}
@@ -196,7 +212,7 @@ export default function PasswordStrengthPage() {
 
         {/* Tavsiye mesajı */}
         {hasInput && missing.length > 0 && (
-          <div className="notification notif-info" style={{ fontSize: 13 }}>
+          <div className="notification notif-info" style={{ fontSize: 13, marginBottom: 16 }}>
             <strong>Şifrenizi güçlendirmek için:</strong>
             <ul style={{ margin: "8px 0 0 0", paddingLeft: 18, lineHeight: 1.7 }}>
               {missing.map((m) => (
@@ -207,8 +223,25 @@ export default function PasswordStrengthPage() {
         )}
 
         {hasInput && missing.length === 0 && (
-          <div className="notification notif-success" style={{ fontSize: 13 }}>
+          <div className="notification notif-success" style={{ fontSize: 13, marginBottom: 16 }}>
             Tüm kriterleri karşılıyor — bu şifre çok güçlü!
+          </div>
+        )}
+
+        {/* Sonucu Kaydet butonu */}
+        {hasInput && (
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <button
+              className="btn-primary"
+              onClick={handleSave}
+              disabled={saving || saved}
+              style={{ fontSize: 13 }}
+            >
+              {saving ? "Kaydediliyor…" : saved ? "Kaydedildi ✓" : "Sonucu Kaydet"}
+            </button>
+            <span style={{ fontSize: 12, color: "var(--gray-60)" }}>
+              Şifreniz kaydedilmez — yalnızca istatistikler (uzunluk, karakter türleri, puan) saklanır.
+            </span>
           </div>
         )}
       </div>

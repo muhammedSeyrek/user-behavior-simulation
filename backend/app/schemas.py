@@ -98,6 +98,17 @@ class SurveyOut(BaseModel):
         from_attributes = True
 
 
+# ── Password Analysis ────────────────────────────────────────────────────────
+
+class PasswordAnalysisCreate(BaseModel):
+    length: int
+    has_upper: bool
+    has_lower: bool
+    has_digit: bool
+    has_special: bool
+    score: int
+
+
 # ── Dashboard / Analytics ────────────────────────────────────────────────────
 
 class DashboardStats(BaseModel):
@@ -112,3 +123,12 @@ class DashboardStats(BaseModel):
     by_age_group: list[dict]
     by_it_experience: list[dict]
     recent_interactions: list[dict]
+
+    # Şifre analizi
+    password_tests: int
+    avg_password_length: float
+    avg_password_score: float
+    pct_has_upper: float
+    pct_has_lower: float
+    pct_has_digit: float
+    pct_has_special: float

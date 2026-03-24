@@ -351,6 +351,41 @@ export default function DashboardPage() {
           />
         </div>
 
+        {/* Şifre Analizi */}
+        {stats.password_tests > 0 && (
+          <div className="card" style={{ marginBottom: 16 }}>
+            <h3 style={chartTitle}>Şifre Analizi</h3>
+            <div className="stat-grid" style={{ marginBottom: 16 }}>
+              <StatCard value={stats.password_tests} label="Toplam Test" />
+              <StatCard value={`${stats.avg_password_length} kr.`} label="Ort. Uzunluk" />
+              <StatCard
+                value={`${stats.avg_password_score} / 100`}
+                label="Ort. Puan"
+                variant={stats.avg_password_score >= 75 ? "success" : stats.avg_password_score < 50 ? "danger" : undefined}
+              />
+            </div>
+            <p style={{ fontSize: 12, color: "var(--gray-60)", fontFamily: "var(--font-mono)", textTransform: "uppercase", letterSpacing: "0.04em", marginBottom: 12 }}>
+              Karakter Türü Kullanım Oranları
+            </p>
+            {[
+              { label: "Büyük harf (A-Z)", pct: stats.pct_has_upper },
+              { label: "Küçük harf (a-z)", pct: stats.pct_has_lower },
+              { label: "Rakam (0-9)", pct: stats.pct_has_digit },
+              { label: "Özel karakter (!@#…)", pct: stats.pct_has_special },
+            ].map(({ label, pct }) => (
+              <div key={label} style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
+                <span style={{ width: 160, fontSize: 12, color: "var(--gray-70)", flexShrink: 0 }}>{label}</span>
+                <div style={{ flex: 1, height: 8, borderRadius: 4, background: "var(--gray-20)", overflow: "hidden" }}>
+                  <div style={{ height: "100%", width: `${pct}%`, background: "var(--blue-60)", borderRadius: 4, transition: "width 0.3s ease" }} />
+                </div>
+                <span style={{ width: 40, fontSize: 12, color: "var(--gray-70)", textAlign: "right", fontFamily: "var(--font-mono)", flexShrink: 0 }}>
+                  %{pct}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {!noData && (
           <>
             <div

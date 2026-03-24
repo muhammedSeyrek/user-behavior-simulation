@@ -4,13 +4,13 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
-from sqlalchemy import func, select
+from sqlalchemy import Integer, cast, func, select
 from sqlalchemy.orm import Session
 
 from app.api.auth import require_researcher
 from app.config import settings
 from app.database import get_db
-from app.models import Participant, SimulationSession, UserInteraction
+from app.models import PasswordAnalysis, Participant, SimulationSession, UserInteraction
 from app.schemas import AuthVerifyRequest, DashboardStats
 
 router = APIRouter(prefix="/analytics", tags=["analytics"])
@@ -97,6 +97,20 @@ def get_dashboard(db: Session = Depends(get_db)):
         .limit(20)
     ).all()
 
+    pwd_row = db.execute(
+        select(
+            func.count(PasswordAnalysis.id).label("total"),
+            func.avg(PasswordAnalysis.length).label("avg_length"),
+            func.avg(PasswordAnalysis.score).label("avg_score"),
+            func.avg(cast(PasswordAnalysis.has_upper, Integer)).label("pct_upper"),
+            func.avg(cast(PasswordAnalysis.has_lower, Integer)).label("pct_lower"),
+            func.avg(cast(PasswordAnalysis.has_digit, Integer)).label("pct_digit"),
+            func.avg(cast(PasswordAnalysis.has_special, Integer)).label("pct_special"),
+        ).select_from(PasswordAnalysis)
+    ).one()
+
+    pwd_total = pwd_row.total or 0
+
     return DashboardStats(
         total_participants=total_participants or 0,
         total_sessions=total_sessions or 0,
@@ -117,6 +131,13 @@ def get_dashboard(db: Session = Depends(get_db)):
             }
             for r in recent
         ],
+        password_tests=pwd_total,
+        avg_password_length=round(pwd_row.avg_length or 0, 1),
+        avg_password_score=round(pwd_row.avg_score or 0, 1),
+        pct_has_upper=round((pwd_row.pct_upper or 0) * 100, 1),
+        pct_has_lower=round((pwd_row.pct_lower or 0) * 100, 1),
+        pct_has_digit=round((pwd_row.pct_digit or 0) * 100, 1),
+        pct_has_special=round((pwd_row.pct_special or 0) * 100, 1),
     )
 
 

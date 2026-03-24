@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.api import participants, sessions, interactions, analytics, survey
+from app.api import participants, sessions, interactions, analytics, survey, password_analysis
 
 # Tabloları oluştur
 Base.metadata.create_all(bind=engine)
@@ -27,6 +27,7 @@ app.include_router(sessions.router, prefix="/api")
 app.include_router(interactions.router, prefix="/api")
 app.include_router(analytics.router, prefix="/api")
 app.include_router(survey.router, prefix="/api")
+app.include_router(password_analysis.router, prefix="/api")
 
 
 @app.get("/")
