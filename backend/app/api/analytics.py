@@ -2,7 +2,6 @@ import io
 import secrets
 from datetime import datetime
 
-import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
@@ -126,8 +125,9 @@ def get_dashboard(db: Session = Depends(get_db)):
     )
 
 
-def _build_export_df(db: Session) -> pd.DataFrame:
+def _build_export_df(db: Session):
     """Tüm etkileşim verisini tek DataFrame'e topla."""
+    import pandas as pd  # lazy import — modül yüklenirken hata vermez
     rows = db.execute(
         select(
             Participant.id.label("katilimci_id"),
@@ -181,6 +181,7 @@ def export_excel(db: Session = Depends(get_db)):
     """Araştırmacı: tüm veriyi Excel olarak indir."""
     df = _build_export_df(db)
     buf = io.BytesIO()
+    import pandas as pd
     with pd.ExcelWriter(buf, engine="openpyxl") as writer:
         df.to_excel(writer, index=False, sheet_name="Etkileşimler")
 
