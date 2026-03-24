@@ -98,4 +98,25 @@ export const interactionApi = {
 export const analyticsApi = {
   getDashboard: () =>
     api.get<DashboardStats>("/analytics/dashboard").then((r) => r.data),
+
+  exportCsv: (username: string, password: string) => {
+    const token = btoa(`${username}:${password}`);
+    return fetch("/api/analytics/export/csv", {
+      headers: { Authorization: `Basic ${token}` },
+    });
+  },
+
+  exportExcel: (username: string, password: string) => {
+    const token = btoa(`${username}:${password}`);
+    return fetch("/api/analytics/export/excel", {
+      headers: { Authorization: `Basic ${token}` },
+    });
+  },
+
+  verifyCredentials: (username: string, password: string) => {
+    const token = btoa(`${username}:${password}`);
+    return fetch("/api/participants/?limit=1", {
+      headers: { Authorization: `Basic ${token}` },
+    });
+  },
 };

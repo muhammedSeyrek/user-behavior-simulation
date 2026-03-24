@@ -6,6 +6,10 @@ class Settings(BaseSettings):
     secret_key: str = "supersecretkey123"
     cors_origins: str = "http://localhost:5173"
 
+    # Araştırmacı dashboard kimlik bilgileri
+    researcher_username: str = "researcher"
+    researcher_password: str = "phishsim2024"
+
     @property
     def cors_origins_list(self) -> list[str]:
         return [o.strip() for o in self.cors_origins.split(",")]

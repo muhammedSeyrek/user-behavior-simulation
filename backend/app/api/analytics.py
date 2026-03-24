@@ -1,7 +1,13 @@
+import io
+from datetime import datetime
+
+import pandas as pd
 from fastapi import APIRouter, Depends
+from fastapi.responses import StreamingResponse
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.auth import require_researcher
 from app.database import get_db
 from app.models import Participant, SimulationSession, UserInteraction
 from app.schemas import DashboardStats
@@ -15,7 +21,6 @@ def get_dashboard(db: Session = Depends(get_db)):
     total_sessions = db.scalar(select(func.count()).select_from(SimulationSession))
     total_interactions = db.scalar(select(func.count()).select_from(UserInteraction))
 
-    # Phishing tıklama oranı
     phishing_sessions = db.scalar(
         select(func.count())
         .select_from(SimulationSession)
@@ -34,7 +39,6 @@ def get_dashboard(db: Session = Depends(get_db)):
 
     phishing_click_rate = (phishing_clicks / phishing_sessions * 100) if phishing_sessions else 0.0
 
-    # Doğru karar oranı
     correct_count = db.scalar(
         select(func.count())
         .select_from(UserInteraction)
@@ -43,26 +47,22 @@ def get_dashboard(db: Session = Depends(get_db)):
 
     correct_decision_rate = (correct_count / total_interactions * 100) if total_interactions else 0.0
 
-    # Ortalama karar süresi
     avg_time = db.scalar(
         select(func.avg(UserInteraction.time_to_action_ms)).select_from(UserInteraction)
     )
 
-    # Departmana göre dağılım
     by_dept = db.execute(
         select(Participant.department, func.count(SimulationSession.id).label("sessions"))
         .join(SimulationSession, Participant.id == SimulationSession.participant_id)
         .group_by(Participant.department)
     ).all()
 
-    # Yaş grubuna göre dağılım
     by_age = db.execute(
         select(Participant.age_group, func.count(SimulationSession.id).label("sessions"))
         .join(SimulationSession, Participant.id == SimulationSession.participant_id)
         .group_by(Participant.age_group)
     ).all()
 
-    # BT deneyimine göre dağılım
     by_it = db.execute(
         select(
             Participant.it_experience,
@@ -76,7 +76,6 @@ def get_dashboard(db: Session = Depends(get_db)):
         .group_by(Participant.it_experience)
     ).all()
 
-    # Son etkileşimler
     recent = db.execute(
         select(
             UserInteraction.action,
@@ -110,4 +109,93 @@ def get_dashboard(db: Session = Depends(get_db)):
             }
             for r in recent
         ],
+    )
+
+
+def _build_export_df(db: Session) -> pd.DataFrame:
+    """Tüm etkileşim verisini tek DataFrame'e topla."""
+    rows = db.execute(
+        select(
+            Participant.id.label("katilimci_id"),
+            Participant.age_group.label("yas_grubu"),
+            Participant.education.label("egitim"),
+            Participant.department.label("bolum"),
+            Participant.it_experience.label("bt_deneyimi"),
+            Participant.prior_training.label("onceki_egitim"),
+            Participant.created_at.label("kayit_zamani"),
+            SimulationSession.id.label("oturum_id"),
+            SimulationSession.content_id.label("icerik_id"),
+            SimulationSession.content_type.label("icerik_turu"),
+            SimulationSession.content_category.label("icerik_kategorisi"),
+            SimulationSession.device_type.label("cihaz_turu"),
+            SimulationSession.hour_of_day.label("gun_saati"),
+            UserInteraction.action.label("eylem"),
+            UserInteraction.time_to_action_ms.label("karar_suresi_ms"),
+            UserInteraction.correct_decision.label("dogru_karar"),
+            UserInteraction.timestamp.label("eylem_zamani"),
+        )
+        .join(SimulationSession, Participant.id == SimulationSession.participant_id)
+        .join(UserInteraction, SimulationSession.id == UserInteraction.session_id)
+        .order_by(UserInteraction.timestamp.desc())
+    ).all()
+
+    return pd.DataFrame(rows, columns=[
+        "katilimci_id", "yas_grubu", "egitim", "bolum", "bt_deneyimi",
+        "onceki_egitim", "kayit_zamani", "oturum_id", "icerik_id",
+        "icerik_turu", "icerik_kategorisi", "cihaz_turu", "gun_saati",
+        "eylem", "karar_suresi_ms", "dogru_karar", "eylem_zamani",
+    ])
+
+
+@router.get("/export/csv", dependencies=[Depends(require_researcher)])
+def export_csv(db: Session = Depends(get_db)):
+    """Araştırmacı: tüm veriyi CSV olarak indir."""
+    df = _build_export_df(db)
+    buf = io.StringIO()
+    df.to_csv(buf, index=False, encoding="utf-8-sig")  # utf-8-sig → Excel'de Türkçe
+    buf.seek(0)
+    filename = f"phishsim_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.csv"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="text/csv",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
+    )
+
+
+@router.get("/export/excel", dependencies=[Depends(require_researcher)])
+def export_excel(db: Session = Depends(get_db)):
+    """Araştırmacı: tüm veriyi Excel olarak indir."""
+    df = _build_export_df(db)
+    buf = io.BytesIO()
+    with pd.ExcelWriter(buf, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False, sheet_name="Etkileşimler")
+
+        # Özet sayfa
+        summary = pd.DataFrame({
+            "Metrik": [
+                "Toplam Katılımcı",
+                "Toplam Oturum",
+                "Toplam Etkileşim",
+                "Phishing Tıklama Oranı (%)",
+                "Doğru Karar Oranı (%)",
+            ],
+            "Değer": [
+                df["katilimci_id"].nunique(),
+                df["oturum_id"].nunique(),
+                len(df),
+                round(
+                    len(df[(df["icerik_turu"] == "phishing") & (df["eylem"] == "clicked_link")])
+                    / max(len(df[df["icerik_turu"] == "phishing"]), 1) * 100, 1
+                ),
+                round(df["dogru_karar"].mean() * 100, 1) if len(df) else 0,
+            ],
+        })
+        summary.to_excel(writer, index=False, sheet_name="Özet")
+
+    buf.seek(0)
+    filename = f"phishsim_export_{datetime.utcnow().strftime('%Y%m%d_%H%M%S')}.xlsx"
+    return StreamingResponse(
+        iter([buf.getvalue()]),
+        media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        headers={"Content-Disposition": f"attachment; filename={filename}"},
     )
